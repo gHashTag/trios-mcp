@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "trios": {
+      "command": "/absolute/path/to/trios-mcp/target/release/trios-mcp",
+      "args": [],
+      "env": {
+        "TRIOS_TRI_BIN": "/absolute/path/to/trios-trainer-igla/target/release/tri",
+        "TRIOS_IGLA_BIN": "/absolute/path/to/trios-trainer-igla/target/release/trios-igla",
+        "RUST_LOG": "info"
+      }
+    }
+  }
+}
