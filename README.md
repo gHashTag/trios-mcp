@@ -11,6 +11,70 @@ Tracking issue: [trios-mcp#1](https://github.com/gHashTag/trios-mcp/issues/1)
 · Cross-ref:
 [trios-trainer-igla#35](https://github.com/gHashTag/trios-trainer-igla/issues/35)
 
+## TRIOS PhD — canonical context (RU + EN)
+
+> **Не забыть / Do not forget:** генерация TRIOS PhD (`trios-phd`) реализована на **Rust** и является каноническим
+> контекстом всей линии. The TRIOS PhD generation line is implemented in **Rust** and is canonical for this repo.
+
+### Архитектура / Architecture
+
+```
+TRIOS MCP / Rust  ->  Postgres SSOT (Railway)  ->  PhD / article / brochure / PDF
+```
+
+- **TRIOS MCP (Rust)** — операторский слой, типизированные MCP-инструменты над `tri` / `trios-igla`.
+- **Postgres SSOT on Railway** — единственный источник истины (single source of truth) для тезисов,
+  Wave-результатов, refutation-логов и Admitted-учёта.
+- **PhD / статья / брошюра / PDF / README** — **производные артефакты** (derived artifacts), генерируются
+  из SSOT. Их нельзя править вручную как первоисточник — править надо данные в Postgres и Rust-генератор.
+
+### Production / прод-правила
+
+Обновление прода — **только** при выполнении всех трёх условий / update production **only** when:
+
+1. **Backup-first** — свежий бэкап Postgres SSOT снят и проверен.
+2. **Dry-run** — прогон миграции/генерации в dry-run режиме, diff просмотрен.
+3. **Explicit confirmation** — явное подтверждение оператора (не «implicit OK»).
+
+Никаких «горячих» правок прод-БД, никаких force-push, никаких авто-PR в основную линию без подтверждения.
+
+### Статусы утверждений / Claim statuses
+
+Любое утверждение в PhD/статье/брошюре должно нести один из статусов:
+
+| Статус | Когда применяется |
+|---|---|
+| `verified`   | формально проверено (Coq/Rocq), подпись зафиксирована в SSOT |
+| `empirical`  | подтверждено экспериментом (Wave-результат, `wave11results.md`) |
+| `open`       | гипотеза, не доказано и не опровергнуто |
+| `high-risk`  | вероятно неверно / зависит от шаткого предположения |
+| `refuted`    | опровергнуто (теорема-опровержение, запись в `admittedlog.md`) |
+
+Утверждения без статуса в публикацию **не идут** / claims without a status do not ship.
+
+### Wave 10 / Wave 11, Admitted reduction, refutation theorems
+
+- **Wave 10 / Wave 11** — итерации эмпирической валидации; результаты Wave 11 зафиксированы в
+  `wave11results.md` (SSOT-derived).
+- **Admitted reduction** — программа сокращения `Admitted` в Coq/Rocq-доказательствах; учёт ведётся в
+  `admittedlog.md`. Каждое снятое `Admitted` — отдельная запись со ссылкой на доказательство.
+- **Refutation theorems** — теоремы-опровержения сохраняются наравне с положительными результатами;
+  они переводят соответствующие claims в статус `refuted` и являются полноправной частью корпуса.
+
+### Воспроизводимость / Reproducibility
+
+- **Dual Coq / Rocq** — доказательства должны собираться и в Coq, и в Rocq (двойная сборка, dual build).
+  Расхождение между Coq и Rocq трактуется как regression и блокирует мерж.
+- **Negative-results framing** — отрицательные результаты (refutations, неудачные Wave-прогоны,
+  снятые гипотезы) публикуются явно. Это не «провалы», а первоклассные научные результаты, без
+  которых PhD-линия не воспроизводима.
+
+### Ссылки / References
+
+- `wave11results.md` — итоги Wave 11 (empirical).
+- `admittedlog.md`   — журнал снятий `Admitted` (verified / open transitions).
+- Cross-ref: [trios-trainer-igla#35](https://github.com/gHashTag/trios-trainer-igla/issues/35).
+
 ## Why
 
 `tri` (Railway deploy + local train) and `trios-igla` (read-only ledger
