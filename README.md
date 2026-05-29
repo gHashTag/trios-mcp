@@ -97,6 +97,79 @@ cargo build --release
 # binary: ./target/release/trios-mcp
 ```
 
+## Quickstart — wake up an AI agent
+
+Get any MCP-aware AI agent (Claude Desktop, Claude Code, Cursor,
+Windsurf, opencode, Perplexity Computer) into the same operating
+posture as the rules in [`AGENTS.md`](AGENTS.md).
+
+> **TL;DR for new sessions:** read [`AGENT_WAKEUP.md`](AGENT_WAKEUP.md)
+> for a one-page wake-up card with rules + host-specific connection
+> commands + smoke test.
+
+### Common prerequisites
+
+```bash
+# 1. Build the MCP server (done above)
+cargo build --release
+
+# 2. Provide environment locally via .env — NEVER commit it
+cp .env.example .env
+# edit .env, set TRIOS_TRI_BIN and TRIOS_IGLA_BIN to absolute paths
+# and DSN env vars by NAME (no values in commits)
+```
+
+### Claude Desktop
+
+See the dedicated [`Claude Desktop / Cursor / Computer`](#claude-desktop--cursor--computer)
+section below — the JSON config and the canonical `mcpServers` block
+live there. A copy of the config lives at
+[`examples/claude_desktop_config.json`](examples/claude_desktop_config.json).
+
+### Claude Code
+
+```bash
+claude mcp add trios \
+  -- sh -c 'set -a && . ./.env && exec ./target/release/trios-mcp'
+claude mcp list
+# Restart your Claude Code session — MCP tools load at session start.
+```
+
+The `sh -c '… set -a && . ./.env && exec …'` wrapper keeps DSNs and
+binary paths out of the host configuration file. This honours rule 5
+of [`AGENTS.md`](AGENTS.md).
+
+### Cursor / Windsurf / opencode
+
+In each host's MCP-server settings, add an entry that launches
+`./target/release/trios-mcp` with env loaded from `./.env`. Verify
+with the host's MCP-tools panel.
+
+### Perplexity Computer
+
+1. Open [Manage skills](https://www.perplexity.ai/computer/skills).
+2. Upload [`docs/skills/trios-mcp.zip`](docs/skills/trios-mcp.zip)
+   under "User skills".
+3. The skill description includes trigger phrases; the platform
+   auto-loads it when a relevant task arrives.
+
+Perplexity Computer uses the skill for operating posture, not as the
+local MCP runner. For direct CLI invocation, drive Claude Desktop /
+Claude Code locally.
+
+### Smoke test
+
+```bash
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  | ./target/release/trios-mcp
+```
+
+You should see well-formed JSON-RPC on stdout and any `RUST_LOG` lines
+on stderr. Mixing logs into stdout violates rule 02.
+
 ## Tool catalog (15)
 
 Mirrors
