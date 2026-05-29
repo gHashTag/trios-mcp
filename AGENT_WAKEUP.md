@@ -72,15 +72,35 @@ A copy lives at [`examples/claude_desktop_config.json`](examples/claude_desktop_
 
 For Claude Code CLI:
 
+> ⚠️ **Use `-s user`** (global). Default local scope is per-project
+> and invisible to agents launched from other directories.
+>
+> ⚠️ **Do not pipe `claude mcp add`** — the confirmation prompt is
+> swallowed and the entry silently not written.
+>
+> ⚠️ **Use an absolute path** in the wrapper's `cd` — user-scope
+> entries run from arbitrary cwd.
+
 ```bash
-claude mcp add trios \
-  -- sh -c 'set -a && . ./.env && exec ./target/release/trios-mcp'
-claude mcp list
-# Restart the Claude Code session — MCP tools load at session start.
+# Replace /ABS/PATH/trios-mcp with the absolute path to your clone.
+claude mcp add trios -s user -- \
+  sh -c 'cd /ABS/PATH/trios-mcp && set -a && . ./.env && exec ./target/release/trios-mcp'
+
+claude mcp list                    # trios … ✓ Connected
+claude mcp get trios               # Scope: User
 ```
 
-The `sh -c '… set -a && . ./.env && exec …'` wrapper keeps DSNs and
-binary paths out of the host config.
+**Restart the Claude Code session** after registering. If a previous
+entry exists, reset both scopes before re-adding:
+
+```bash
+claude mcp remove trios
+claude mcp remove trios --scope local
+```
+
+The `sh -c 'cd /ABS/PATH && set -a && . ./.env && exec …'` wrapper
+keeps DSNs and binary paths out of the host config. The leading
+`cd` is required because user-scope entries have no fixed cwd.
 
 ### Cursor / Windsurf / opencode
 

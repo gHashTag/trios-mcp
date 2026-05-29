@@ -128,16 +128,40 @@ live there. A copy of the config lives at
 
 ### Claude Code
 
+> ⚠️ **Use `-s user` (global) — not the default local scope.**
+> Local scope is per-project; an agent running from another directory
+> won't see the server. `-s user` makes it available in all projects.
+>
+> ⚠️ **Do not pipe `claude mcp add`** — the confirmation prompt is
+> swallowed and the entry is silently not written.
+>
+> ⚠️ **Use an absolute path** to the working directory — user-scope
+> entries run from arbitrary cwd, so `./target/...` will fail.
+
 ```bash
-claude mcp add trios \
-  -- sh -c 'set -a && . ./.env && exec ./target/release/trios-mcp'
-claude mcp list
-# Restart your Claude Code session — MCP tools load at session start.
+# Replace /ABS/PATH/trios-mcp with the absolute path to your clone.
+claude mcp add trios -s user -- \
+  sh -c 'cd /ABS/PATH/trios-mcp && set -a && . ./.env && exec ./target/release/trios-mcp'
+
+claude mcp list                    # trios … ✓ Connected
+claude mcp get trios               # Scope: User (available in all your projects)
 ```
 
-The `sh -c '… set -a && . ./.env && exec …'` wrapper keeps DSNs and
-binary paths out of the host configuration file. This honours rule 5
-of [`AGENTS.md`](AGENTS.md).
+**Restart the Claude Code session** after registering — MCP tools are
+loaded at session start.
+
+**Reset** if a previous (broken) entry exists:
+
+```bash
+claude mcp remove trios                 # user-scope entry
+claude mcp remove trios --scope local   # project-local leftover, if any
+claude mcp list                          # confirm clean state
+```
+
+The `sh -c 'cd /ABS/PATH && set -a && . ./.env && exec …'` wrapper
+keeps DSNs and binary paths out of the host configuration file.
+This honours rule 5 of [`AGENTS.md`](AGENTS.md). The leading `cd`
+is required because a user-scope entry has no fixed cwd.
 
 ### Cursor / Windsurf / opencode
 
