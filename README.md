@@ -11,68 +11,68 @@ Tracking issue: [trios-mcp#1](https://github.com/gHashTag/trios-mcp/issues/1)
 · Cross-ref:
 [trios-trainer-igla#35](https://github.com/gHashTag/trios-trainer-igla/issues/35)
 
-## TRIOS PhD — canonical context (RU + EN)
+## TRIOS PhD — canonical context
 
-> **Не забыть / Do not forget:** генерация TRIOS PhD (`trios-phd`) реализована на **Rust** и является каноническим
-> контекстом всей линии. The TRIOS PhD generation line is implemented in **Rust** and is canonical for this repo.
+> **Do not forget:** the TRIOS PhD generation line (`trios-phd`) is implemented in **Rust** and is the
+> canonical context for this repo.
 
-### Архитектура / Architecture
+### Architecture
 
 ```
 TRIOS MCP / Rust  ->  Postgres SSOT (Railway)  ->  PhD / article / brochure / PDF
 ```
 
-- **TRIOS MCP (Rust)** — операторский слой, типизированные MCP-инструменты над `tri` / `trios-igla`.
-- **Postgres SSOT on Railway** — единственный источник истины (single source of truth) для тезисов,
-  Wave-результатов, refutation-логов и Admitted-учёта.
-- **PhD / статья / брошюра / PDF / README** — **производные артефакты** (derived artifacts), генерируются
-  из SSOT. Их нельзя править вручную как первоисточник — править надо данные в Postgres и Rust-генератор.
+- **TRIOS MCP (Rust)** — operator layer, typed MCP tools wrapping `tri` / `trios-igla`.
+- **Postgres SSOT on Railway** — single source of truth for theses, Wave results, refutation logs,
+  and Admitted accounting.
+- **PhD / article / brochure / PDF / README** — **derived artifacts**, generated from the SSOT.
+  They must not be hand-edited as primary sources — edit the data in Postgres and the Rust generator.
 
-### Production / прод-правила
+### Production update policy
 
-Обновление прода — **только** при выполнении всех трёх условий / update production **only** when:
+Update production **only** when all three conditions are met:
 
-1. **Backup-first** — свежий бэкап Postgres SSOT снят и проверен.
-2. **Dry-run** — прогон миграции/генерации в dry-run режиме, diff просмотрен.
-3. **Explicit confirmation** — явное подтверждение оператора (не «implicit OK»).
+1. **Backup-first** — a fresh Postgres SSOT backup has been taken and verified.
+2. **Dry-run** — the migration/generation has been run in dry-run mode and the diff reviewed.
+3. **Explicit confirmation** — the operator has explicitly confirmed (no "implicit OK").
 
-Никаких «горячих» правок прод-БД, никаких force-push, никаких авто-PR в основную линию без подтверждения.
+No hot-patching of the production DB, no force-push, no auto-PRs into the main line without confirmation.
 
-### Статусы утверждений / Claim statuses
+### Claim statuses
 
-Любое утверждение в PhD/статье/брошюре должно нести один из статусов:
+Every claim in the PhD/article/brochure must carry one of the following statuses:
 
-| Статус | Когда применяется |
+| Status | When it applies |
 |---|---|
-| `verified`   | формально проверено (Coq/Rocq), подпись зафиксирована в SSOT |
-| `empirical`  | подтверждено экспериментом (Wave-результат, `wave11results.md`) |
-| `open`       | гипотеза, не доказано и не опровергнуто |
-| `high-risk`  | вероятно неверно / зависит от шаткого предположения |
-| `refuted`    | опровергнуто (теорема-опровержение, запись в `admittedlog.md`) |
+| `verified`   | formally verified (Coq/Rocq), signature recorded in the SSOT |
+| `empirical`  | confirmed by experiment (Wave result, `wave11results.md`) |
+| `open`       | hypothesis; neither proved nor refuted |
+| `high-risk`  | likely wrong / depends on a fragile assumption |
+| `refuted`    | refuted (refutation theorem, entry in `admittedlog.md`) |
 
-Утверждения без статуса в публикацию **не идут** / claims without a status do not ship.
+Claims without a status **do not ship**.
 
 ### Wave 10 / Wave 11, Admitted reduction, refutation theorems
 
-- **Wave 10 / Wave 11** — итерации эмпирической валидации; результаты Wave 11 зафиксированы в
+- **Wave 10 / Wave 11** — iterations of empirical validation; Wave 11 results are recorded in
   `wave11results.md` (SSOT-derived).
-- **Admitted reduction** — программа сокращения `Admitted` в Coq/Rocq-доказательствах; учёт ведётся в
-  `admittedlog.md`. Каждое снятое `Admitted` — отдельная запись со ссылкой на доказательство.
-- **Refutation theorems** — теоремы-опровержения сохраняются наравне с положительными результатами;
-  они переводят соответствующие claims в статус `refuted` и являются полноправной частью корпуса.
+- **Admitted reduction** — program for reducing `Admitted` occurrences in Coq/Rocq proofs; tracked in
+  `admittedlog.md`. Every removed `Admitted` is a separate entry linking to the proof.
+- **Refutation theorems** — refutation theorems are kept on equal footing with positive results;
+  they move the corresponding claims to `refuted` status and are a first-class part of the corpus.
 
-### Воспроизводимость / Reproducibility
+### Reproducibility
 
-- **Dual Coq / Rocq** — доказательства должны собираться и в Coq, и в Rocq (двойная сборка, dual build).
-  Расхождение между Coq и Rocq трактуется как regression и блокирует мерж.
-- **Negative-results framing** — отрицательные результаты (refutations, неудачные Wave-прогоны,
-  снятые гипотезы) публикуются явно. Это не «провалы», а первоклассные научные результаты, без
-  которых PhD-линия не воспроизводима.
+- **Dual Coq / Rocq** — proofs must build under both Coq and Rocq (dual build). A divergence between
+  Coq and Rocq is treated as a regression and blocks merge.
+- **Negative-results framing** — negative results (refutations, failed Wave runs, retracted
+  hypotheses) are published explicitly. They are not "failures" but first-class scientific results;
+  without them the PhD line is not reproducible.
 
-### Ссылки / References
+### References
 
-- `wave11results.md` — итоги Wave 11 (empirical).
-- `admittedlog.md`   — журнал снятий `Admitted` (verified / open transitions).
+- `wave11results.md` — Wave 11 results (empirical).
+- `admittedlog.md`   — log of `Admitted` removals (verified / open transitions).
 - Cross-ref: [trios-trainer-igla#35](https://github.com/gHashTag/trios-trainer-igla/issues/35).
 
 ## Why
